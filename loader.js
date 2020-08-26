@@ -1,4 +1,27 @@
 const wait = ms => new Promise(r => setTimeout(r, ms));
+document.documentElement.innerHTML = `
+  <head>
+    <meta charset="utf-8" />
+    <title>Loading site...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <pre>
+Loading site...
+</pre>
+  </body>`;
+function logInstall(what) {
+  log(what, "Install");
+}
+
+function logUninstall(what) {
+  log(what, "Uninstall");
+}
+const logEle = document.querySelector("pre");
+function log(what, tag) {
+  var label = "[" + tag + "] ";
+  logEle.innerText += label + what + "\n";
+}
 // A convenient shortcut for `document.querySelector()`
 var $ = document.querySelector.bind(document); // eslint-disable-line id-length
 
@@ -7,6 +30,13 @@ let installed = () => {};
   // Check if the application is installed by checking the controller.
   // If there is a service worker controlling this page, let's assume
   // the application is installed.
+  logInstall("Loading libraries");
+  eval(
+    await (await fetch(
+      "https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"
+    )).text()
+  );
+  logInstall("Libraries loaded");
   let registration = await navigator.serviceWorker.getRegistration();
   if (registration) {
     installed();
@@ -55,16 +85,17 @@ let installed = () => {};
             } else {
               logInstall("Error caching " + file.name);
             }
-            r();
+            r(file);
           });
         })
       );
     }
     Promise.all(loadpromises).then(() => {
-      client.destroy(() => {
+      logInstall(``)
+      /*client.destroy(() => {
         logInstall("Done!");
         setTimeout(() => window.location.replace(window.location.href), 500);
-      });
+      });*/
     });
   });
 })();
@@ -89,18 +120,4 @@ function install() {
         logInstall("An error happened.");
       });
   });
-}
-
-function logInstall(what) {
-  log(what, "Install");
-}
-
-function logUninstall(what) {
-  log(what, "Uninstall");
-}
-
-const logEle = document.querySelector("pre");
-function log(what, tag) {
-  var label = "[" + tag + "] ";
-  logEle.innerText += label + what + "\n";
 }
